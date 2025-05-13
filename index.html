@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="motion" content="width=device-width, initial-scale=1.0" />
+  <title>motion</title>
+  <link rel="stylesheet" href="jiinemotion.css" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    z-index: 1;
+  }
+
+  .hand, #human {
+    max-height: 100vh;
+    max-width: 100vw;
+  }
+
+
+</style>
+
+</head>
+
+<body>
+  <canvas id="webCanvas"></canvas>
+  <canvas id="fadeCanvas"></canvas>
+  <canvas id="darknessOverlay"></canvas>
+
+
+  <!-- 손 이미지들 -->
+  <img class="hand" src="images/motion/1.png" style="transform: rotate(120deg); right: -20%; top: 40%; width: 50%;" />
+  <img class="hand" src="images/motion/2.png" style="transform: rotate(30deg); right: 30%; bottom: -15%; width: 40%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/3.png" style="left: -10%; bottom: -20%; width: 50%;" />
+  <img class="hand" src="images/motion/3.png" style="left: -10%; bottom: -20%; width: 50%;" />
+  <img class="hand" src="images/motion/4.png" style="right: 40%; top: -30%; width: 40%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/5.png" style="transform: rotate(-120deg); right: -10%; bottom: 50%; width: 30%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/6.png" style="right: 35%; top: -35%; width: 40%;" />
+
+  <img class="hand" src="images/motion/1.png" style="left: 50%; top: -10%; width: 30%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/2.png" style="right: 5%; bottom: -10%; width: 20%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/3.png" style="transform: rotate(30deg); left: -10%; bottom: 10%; width: 30%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/4.png" style="transform: rotate(190deg); right: 27%; bottom: -25%; width: 30%; opacity: 0.5;" />
+  <img class="hand" src="images/motion/5.png" style="left: 50%; bottom: -10%; width: 40%;" />
+  <img class="hand" src="images/motion/6.png" style="transform: rotate(20deg); right: -5%; top: -45%; width: 40%; opacity: 0.5;" />
+
+  <img class="hand" src="images/motion/1.png" style="transform: rotate(200deg); left: 2%; bottom: -20%; width: 45%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/2.png" style="transform: rotate(120deg); left: -20%; top: -15%; width: 50%;" />
+  <img class="hand" src="images/motion/3.png" style="left: 3%; bottom: 10%; width: 40%; opacity: 0.8;" />
+  <img class="hand" src="images/motion/4.png" style="right: 60%; top: -30%; width: 35%;" />
+  <img class="hand" src="images/motion/5.png" style="transform: rotate(-130deg); right: -10%; bottom: 60%; width: 40%; opacity: 0.3;" />
+
+  <!-- 등장할 캐릭터 이미지 -->
+  <img id="human" src="images/motion/human.png" alt="human" />
+
+  <script>
+   // 검정 선 효과
+    const canvas = document.getElementById('webCanvas');
+    const ctx = canvas.getContext('2d');
+    const fadeCanvas = document.getElementById('fadeCanvas');
+    const fadeCtx = fadeCanvas.getContext('2d');
+    canvas.width = fadeCanvas.width = window.innerWidth;
+    canvas.height = fadeCanvas.height = window.innerHeight;
+    let points = [];
+    const center = { x: canvas.width / 2, y: canvas.height / 2 };
+    const maxDist = 500;
+    const lineWidthBase = 1.5;
+    const fadeStep = 0.0007;
+
+    function generatePoint() {
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = canvas.width / 3 + Math.random() * (canvas.width / 2);
+      return {
+        x: center.x + Math.cos(angle) * distance * 1.2,
+        y: center.y + Math.sin(angle) * distance * 0.6,
+        vx: Math.random() * 0.02 - 0.01,
+        vy: Math.random() * 0.02 - 0.01,
+        opacity: 0
+      };
+    }
+
+    function drawWeb() {
+      ctx.fillStyle = "rgba(210,210,210,0.1)";
+      fadeCtx.clearRect(0, 0, canvas.width, canvas.height);
+      const gradient = fadeCtx.createRadialGradient(center.x, center.y, 0, center.x, center.y, Math.max(canvas.width, canvas.height) / 1.5);
+      gradient.addColorStop(0, 'rgba(255,255,255,0)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0.85)');
+      fadeCtx.fillStyle = gradient;
+      fadeCtx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (points.length < 800 && Math.random() < 0.1) {
+        points.push(generatePoint());
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        let p1 = points[i];
+        if (p1.opacity < 1) p1.opacity += fadeStep;
+        p1.x += p1.vx;
+        p1.y += p1.vy;
+
+        for (let j = i + 1; j < points.length; j++) {
+          let p2 = points[j];
+          if (p2.opacity < 1) p2.opacity += fadeStep;
+          const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          if (dist < maxDist) {
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+            const alpha = 0.3 * (1 - dist / maxDist) * Math.min(p1.opacity, p2.opacity);
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(20, 20, 20, ${alpha})`;
+            ctx.lineWidth = lineWidthBase;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(drawWeb);
+    }
+    window.onload = drawWeb;
+    
+  </script>
+
+<script>
+  const negativePhrases = [
+    "너같은 건 안돼.",
+    "누가 너 좋아하긴 해?",
+    "쓸모없어.",
+    "도움이 안 돼.",
+    "그게 최선이야?",
+    "넌 항상 그래.",
+    "왜 그렇게밖에 못 해?",
+    "모두가 널 싫어해.",
+    "포기해.",
+    "다 너 때문이야.",
+    "재능은 타고나는 거야.",
+    "넌 실패작이야.",
+    "아무도 널 원하지 않아.",
+    "제발 가만히 좀 있어.",
+    "또 실수했어?",
+    "기대도 안 했다.",
+    "혼자 있는 게 어울려.",
+    "그만 좀 해.",
+    "왜 계속 그러는 거야?",
+    "어우 지긋지긋해.",
+    "네가 뭘 할 수 있겠어?",
+    "항상 너가 문제네.",
+    "거봐, 또 실패했네.",
+    "왜 기대한거지.",
+    "넌 왜 이렇게...",
+    "그 정도도 못 해?",
+    "한심해.",
+    "민폐야.",
+    "사람들이 다 너 피하잖아.",
+    "유치해.",
+    "그건 누구나 할 수 있는 일이야.",
+    "굳이 그래야 하나.",
+    "너랑 있으면 피곤해.",
+    "조용히 좀 해줄래?",
+    "그만 좀 해, 진짜.",
+    "넌 도무지 성장하지를 않네.",
+    "또 변명하려고?",
+    "할 줄 아는 게 뭐야?",
+    "거울을 봐",
+    "실망시키지마 제발.",
+    "정신 좀 차려.",
+    "또 시작이네.",
+    "너보다 어린 쟤네도 잘 사는데",
+    "뭐가 그렇게 불만이야",
+    "없어보인다.",
+    "너랑 있으면 재미없을텐데",
+    "하...",
+    "됐다 그냥"
+  ]
+
+  const allHands = document.querySelectorAll('.hand');
+
+allHands.forEach(hand => {
+  hand.style.transition = 'transform 0.2s ease';
+  hand.style.cursor = 'pointer';
+
+  const originalTransform = hand.style.transform || '';
+
+  hand.addEventListener('click', () => {
+    // 🌑 어두움 증가
+    darknessLevel += 0.05;
+    drawDarkness();
+
+    // 클릭된 손 이미지 가장 앞으로
+    hand.style.zIndex = '100';
+
+    // 손 커졌다가 원래대로
+    hand.style.transform = `${originalTransform} scale(1.4)`;
+    setTimeout(() => {
+      hand.style.transform = originalTransform;
+      hand.style.zIndex = '10';
+    }, 200);
+
+    // 부정적인 문장 생성
+    const text = document.createElement('div');
+    text.innerText = negativePhrases[Math.floor(Math.random() * negativePhrases.length)];
+    text.style.position = 'absolute';
+    text.style.left = `${Math.random() * window.innerWidth * 0.9}px`;
+    text.style.top = `${Math.random() * window.innerHeight * 0.9}px`;
+    text.style.color = 'black';
+    text.style.fontSize = `${Math.floor(Math.random() * 17) + 14}px`;
+    text.style.fontFamily = 'Arial, sans-serif';
+    text.style.zIndex = '50';
+    text.style.pointerEvents = 'none';
+    document.body.appendChild(text);
+  });
+});
+
+
+
+
+
+
+  const darknessCanvas = document.getElementById('darknessOverlay');
+const darknessCtx = darknessCanvas.getContext('2d');
+darknessCanvas.width = window.innerWidth;
+darknessCanvas.height = window.innerHeight;
+darknessCanvas.style.position = 'absolute';
+darknessCanvas.style.top = 0;
+darknessCanvas.style.left = 0;
+darknessCanvas.style.zIndex = 30; // human보다 위, text보다 아래
+darknessCanvas.style.pointerEvents = 'none';
+
+let darknessLevel = 0; // 0 ~ 1
+
+function drawDarkness() {
+  darknessCtx.clearRect(0, 0, darknessCanvas.width, darknessCanvas.height);
+
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  const radius = Math.min(window.innerWidth, window.innerHeight) / 5.5;
+
+  // 어두운 레이어
+  const grad = darknessCtx.createRadialGradient(
+    centerX, centerY, radius,
+    centerX, centerY, radius + 300
+  );
+  grad.addColorStop(0, `rgba(0, 0, 0, 0)`); // 중심
+  grad.addColorStop(1, `rgba(0, 0, 0, ${Math.min(darknessLevel, 0.9)})`); // 외곽
+
+  darknessCtx.fillStyle = grad;
+  darknessCtx.fillRect(0, 0, darknessCanvas.width, darknessCanvas.height);
+}
+
+window.addEventListener('resize', () => {
+  darknessCanvas.width = window.innerWidth;
+  darknessCanvas.height = window.innerHeight;
+  drawDarkness();
+});
+
+const human = document.getElementById('human');
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    human.style.opacity = 1;
+    human.style.pointerEvents = 'auto';
+  }
+});
+
+
+
+
+
+</script>
+
+
+
+
+
+</body>
+</html>

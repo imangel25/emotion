@@ -1,0 +1,119 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #e0e0e0;
+  height: 100%;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;  /* 뷰포트 너비 */
+  height: 100vh; /* 뷰포트 높이 */
+  display: block;
+  z-index: 1;
+}
+
+
+img {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  animation: fadePulse 4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.3s);
+}
+
+@keyframes fadePulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* 각 이미지에 순차적인 지연값 부여 */
+img:nth-of-type(1)  { --i: 1; }
+img:nth-of-type(2)  { --i: 2; }
+img:nth-of-type(3)  { --i: 3; }
+img:nth-of-type(4)  { --i: 4; }
+img:nth-of-type(5)  { --i: 5; }
+img:nth-of-type(6)  { --i: 6; }
+img:nth-of-type(7)  { --i: 7; }
+img:nth-of-type(8)  { --i: 8; }
+img:nth-of-type(9)  { --i: 9; }
+img:nth-of-type(10) { --i: 10; }
+img:nth-of-type(11) { --i: 11; }
+img:nth-of-type(12) { --i: 12; }
+img:nth-of-type(13) { --i: 13; }
+img:nth-of-type(14) { --i: 14; }
+img:nth-of-type(15) { --i: 15; }
+img:nth-of-type(16) { --i: 16; }
+img:nth-of-type(17) { --i: 17; }
+img:nth-of-type(18) { --i: 18; }
+img:nth-of-type(19) { --i: 19; }
+img:nth-of-type(20) { --i: 20; }
+
+.invisible-wall {
+  background-color: transparent;
+  z-index: 19; /* #human보다 낮게 */
+  pointer-events: none; /* 클릭 방지 */
+}
+
+canvas {
+  z-index: 1;
+}
+
+.hand {
+  z-index: 10;
+}
+
+
+
+#darknessOverlay {
+  z-index: 30;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: 1;
+}
+
+.hand {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  max-height: 100vh;
+  max-width: 100vw;
+}
+
+#human {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18%;
+  transform: translate(-50%, -50%) rotate(20deg);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  max-height: 100vh;
+  animation: none !important;
+
+}
+
+#darknessOverlay {
+  z-index: 30;
+  pointer-events: none;
+}
